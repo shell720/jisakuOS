@@ -9,7 +9,6 @@
 #include  <Protocol/BlockIo.h>
 #include  <Guid/FileInfo.h>
 
-
 struct MemoryMap {
   UINTN buffer_size;
   VOID* buffer;
@@ -114,6 +113,7 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle, EFI_GRAPHICS_OUTPUT_PROTOCOL** gop){
     gBS->LocateHandleBuffer(
         ByProtocol, &gEfiGraphicsOutputProtocolGuid, NULL, 
         &num_gop_handles, &gop_handles);
+
     gBS->OpenProtocol(
         gop_handles[0], &gEfiGraphicsOutputProtocolGuid, (VOID**)gop, 
         image_handle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
@@ -131,9 +131,9 @@ const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt){
         case PixelBitMask:
           return L"PixelBitMask";
         case PixelBltOnly:
-          return L"PixleBltOnly";
+          return L"PixelBltOnly";
         case PixelFormatMax:
-          return L"PixelFirnatMax";
+          return L"PixelFormatMax";
         default:
           return L"InvalidPixelFormat";
     }
@@ -203,9 +203,9 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
 
     //カーネルを起動させる
     UINT64 entry_addr = *(UINT64*)(kernel_base_addr+24);
-    typedef void EntryPointType(void);
+    typedef void EntryPointType(UINT64, UINT64);
     EntryPointType* entry_point = (EntryPointType*)entry_addr;
-    entry_point();
+    entry_point(gop->Mode->FrameBufferBase, gop->Mode->FrameBufferSize);
 
     Print(L"ALL Done\n");
 
