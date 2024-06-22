@@ -3,12 +3,14 @@
 #include  <Library/UefiBootServicesTableLib.h>
 #include  <Library/PrintLib.h>
 #include  <Library/MemoryAllocationLib.h>
+#include  <Library/BaseMemoryLib.h>
 #include  <Protocol/LoadedImage.h>
 #include  <Protocol/SimpleFileSystem.h>
 #include  <Protocol/DiskIo2.h>
 #include  <Protocol/BlockIo.h>
 #include  <Guid/FileInfo.h>
 #include  "frame_buffer_config.hpp"
+#include  "elf.hpp"
 
 struct MemoryMap {
   UINTN buffer_size;
@@ -63,13 +65,8 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file){
     CHAR8* header = "Index, Type, Type(name), PhysicalStart, NumberOfPages, Attributes\n";
     len = AsciiStrLen(header);
     status = file->Write(file, &len, header);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         return status;
-=======
-    if (EFI_ERROR(status)) {
-      return status;
->>>>>>> day4
     }
 
     Print(L"map->buffer = %08lx, map->map_size = %08lx\n", map->buffer, map->map_size);
@@ -87,13 +84,8 @@ EFI_STATUS SaveMemoryMap(struct MemoryMap* map, EFI_FILE_PROTOCOL* file){
             desc->PhysicalStart, desc->NumberOfPages, 
             desc->Attribute & 0xffffflu);
         status = file->Write(file, &len, buf);
-<<<<<<< HEAD
         if (EFI_ERROR(status)){
             return status;
-=======
-        if (EFI_ERROR(status)) {
-          return status;
->>>>>>> day4
         }
     }
 
@@ -112,17 +104,10 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL** root){
         image_handle, 
         NULL, 
         EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         return status;
     }
 
-=======
-    if (EFI_ERROR(status)) {
-      return status;
-    }
-    
->>>>>>> day4
     status = gBS->OpenProtocol(
         loaded_image->DeviceHandle, 
         &gEfiSimpleFileSystemProtocolGuid,
@@ -130,13 +115,8 @@ EFI_STATUS OpenRootDir(EFI_HANDLE image_handle, EFI_FILE_PROTOCOL** root){
         image_handle, 
         NULL, 
         EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         return status;
-=======
-    if (EFI_ERROR(status)) {
-      return status;
->>>>>>> day4
     }
 
     return fs->OpenVolume(fs, root);
@@ -149,25 +129,15 @@ EFI_STATUS OpenGOP(EFI_HANDLE image_handle, EFI_GRAPHICS_OUTPUT_PROTOCOL** gop){
     status = gBS->LocateHandleBuffer(
         ByProtocol, &gEfiGraphicsOutputProtocolGuid, NULL, 
         &num_gop_handles, &gop_handles);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         return status;
-=======
-    if (EFI_ERROR(status)) {
-      return status;
->>>>>>> day4
     }
 
     status = gBS->OpenProtocol(
         gop_handles[0], &gEfiGraphicsOutputProtocolGuid, (VOID**)gop, 
         image_handle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         return status;
-=======
-    if (EFI_ERROR(status)) {
-      return status;
->>>>>>> day4
     }
     FreePool(gop_handles);
 
@@ -191,28 +161,42 @@ const CHAR16* GetPixelFormatUnicode(EFI_GRAPHICS_PIXEL_FORMAT fmt){
     }
 }
 
-<<<<<<< HEAD
 void Halt(void){
     while(1) __asm__("hlt");
-=======
-void Halt(void) {
-  while (1) __asm__("hlt");
->>>>>>> day4
+}
+
+void CalcLoadAddressRange(Elf64_Ehdr* ehdr, UINT64* first. UINT64* last){
+    Elf64_Phdr* phdr = (Elf64_Phdr*)((UINT64)ehdr + ehdr->e_phoff);
+    *first = MAX_UINT64;
+    *last = 0;
+    for (Elf64_Half i=0; i<ehdr->e_phnum; ++i){
+        if (phdr[i].p_type != PT_LOAD) continue;
+        *first = MIN(*first, phdr[i].p_vaddr);
+        *last = MAX(*last, phdr[i].p_vaddr+pdhr[i].p_memsz);
+    }
+}
+
+void CopyLoadSegments(Elf64_Ehdr* ehdr){
+    Elf64_Phdr* phdr = (Elf64_Phdr*)((UINT64)ehdr+ehdr->e_phoff);
+    for (Elf64_Half i=0; i<ehdr->e_phnum; ++i){
+        if (phdr[i].p_type != PT_LOAD) contiune;
+
+        UINT64 segm_in_file = (UINT64)ehdr+phdr[i].p_offset;
+        CopyMem((VOID*)phdr[i].p_vaddr, (VOID*)segm_in_file, phdr[i].p_filesz);
+
+        UINTN remain_bytes = phdr[i].p_memsz - phdr[i].p_filesz;
+        SetMem((VOID*)(phdr[i].p_vaddr + phdr[i].p_filesz), remain_bytes, 0);
+    }
 }
 
 EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_table){
     EFI_STATUS status;
-<<<<<<< HEAD
-=======
-
->>>>>>> day4
     Print(L"Hello, Mikan World!\n");
     
     // RAMの情報を読み込んでdumpする
     CHAR8 memmap_buf[4096 * 4];
     struct MemoryMap memmap = {sizeof(memmap_buf), memmap_buf, 0, 0, 0, 0};
     status = GetMemoryMap(&memmap);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         Print(L"failed to get memory map: %r\n", status);
         Halt();
@@ -222,24 +206,12 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
     if (EFI_ERROR(status)){
         Print(L"failed to open root directory: %r\n", status);
         Halt();
-=======
-    if (EFI_ERROR(status)) {
-      Print(L"failed to get memory map: %r\n", status);
-      Halt();
-    }
-    EFI_FILE_PROTOCOL* root_dir;
-    status = OpenRootDir(image_handle, &root_dir);
-    if (EFI_ERROR(status)) {
-      Print(L"failed to open root directory: %r\n", status);
-      Halt();
->>>>>>> day4
     }
     EFI_FILE_PROTOCOL* memmap_file;
     status = root_dir->Open(
         root_dir, &memmap_file, L"\\memmap",
         EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
     if (EFI_ERROR(status)) {
-<<<<<<< HEAD
         Print(L"failed to open file '\\memmap': %r\n", status);
         Print(L"Ignored.\n");
     } else {
@@ -255,34 +227,12 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
         }
     }
 
-    //ピクセルに描く
+    //ピクセルに白を描く
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop;
     status = OpenGOP(image_handle, &gop);
     if (EFI_ERROR(status)){
         Print(L"failed to Open GOP: %r\n", status);
         Halt();
-=======
-      Print(L"failed to open file '\\memmap': %r\n", status);
-      Print(L"Ignored.\n");
-    } else {
-      status = SaveMemoryMap(&memmap, memmap_file);
-      if (EFI_ERROR(status)) {
-        Print(L"failed to save memory map: %r\n", status);
-        Halt();
-    }
-    status = memmap_file->Close(memmap_file);
-    if (EFI_ERROR(status)) {
-        Print(L"failed to close memory map: %r\n", status);
-        Halt();
-      }
-    }
-    //ピクセルに描く
-    EFI_GRAPHICS_OUTPUT_PROTOCOL* gop;
-    status = OpenGOP(image_handle, &gop);
-    if (EFI_ERROR(status)) {
-      Print(L"failed to open GOP: %r\n", status);
-      Halt();
->>>>>>> day4
     }
     Print(L"Resolution: %ux%u, Pixel Format: %s, %u pixels/line\n", 
       gop->Mode->Info->HorizontalResolution,
@@ -298,57 +248,56 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
         frame_buffer[i] = 255;
     }
 
-    //カーネルファイルを読み込む
+    //
     EFI_FILE_PROTOCOL* kernel_file;
     status = root_dir->Open(root_dir, &kernel_file, L"\\kernel.elf", EFI_FILE_MODE_READ, 0);//kennel.elfを読み込み専用で開く
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         Print(L"failed to Open file kernel.elf: %r\n", status);
         Halt();
-=======
-    if (EFI_ERROR(status)) {
-      Print(L"failed to open file '\\kernel.elf': %r\n", status);
-      Halt();
->>>>>>> day4
     }
     UINTN file_info_size = sizeof(EFI_FILE_INFO) + sizeof(CHAR16)*12;
     UINT8 file_info_buffer[file_info_size];
     status = kernel_file->GetInfo(kernel_file, &gEfiFileInfoGuid, &file_info_size, file_info_buffer);
-<<<<<<< HEAD
     if (EFI_ERROR(status)){
         Print(L"failed to get file information: %r\n", status);
         Halt();
-=======
-    if (EFI_ERROR(status)) {
-      Print(L"failed to get file information: %r\n", status);
-      Halt();
->>>>>>> day4
     }
+
+    //カーネルファイルを一時的に読み込む
     EFI_FILE_INFO* file_info = (EFI_FILE_INFO*) file_info_buffer;
     UINTN kernel_file_size = file_info->FileSize;
-    EFI_PHYSICAL_ADDRESS kernel_base_addr = 0x100000;
-    status = gBS->AllocatePages(AllocateAddress, EfiLoaderData, (kernel_file_size+0xfff)/0x1000,&kernel_base_addr);
-<<<<<<< HEAD
+    VOID* kernel_buffer;
+    status = gBS->AllocatePool(EfiLoaderData, kernel_file_size, &kernel_buffer);
+    if (EFI_ERROR(status)){
+        Print(L"failed to allocate pool: %r\n", status);
+        Halt();
+    }
+    status = kernel_file->Read(kernel_file, &kernel_file_size, kernel_buffer);
+    if (EFI_ERROR(status)){
+        Print(L"Error: %r", status);
+        Halt();
+    }
+
+    // カーネルを最終的に読み込むメモリ領域を割り当てる
+    Elf64_Ehdr* kernel_ehdr = (Elf64_Ehdr*)kernel_buffer;
+    UINT64 kernel_first_addr, kernel_last_addr;
+    CalcLoadAddressRange(kernel_ehdr, &kernel_first_addr, &kernel_last_addr);
+    UINTN num_pages = (kernel_last_addr - kernel_first_addr + 0xffff)/0x1000;
+    status = gBS->AllocatePages(AllocateAddress, EfiLoaderData, num_pages, &kernel_first_addr);
     if (EFI_ERROR(status)){
         Print(L"failed to allocate pages: %r\n", status);
         Halt();
     }
-    status = kernel_file->Read(kernel_file, &kernel_file_size, (VOID*)kernel_base_addr);
+
+    // カーネルファイルを最終的に読み込む
+    CopyLoadSegments(kernel_ehdr);
+    Print(L"Kernel: 0x%0lx - 0x0lx\n", kernel_first_addr, kernel_last_addr);
+    status = gBS->FreePool(kernel_buffer);
     if (EFI_ERROR(status)){
-        Print(L"Error: %r", status);
+        Print(L"failed to free pool: %r\n", status);
         Halt();
-=======
-    if (EFI_ERROR(status)) {
-      Print(L"failed to allocate pages: %r", status);
-      Halt();
     }
-    status = kernel_file->Read(kernel_file, &kernel_file_size, (VOID*)kernel_base_addr);
-    if (EFI_ERROR(status)) {
-      Print(L"error: %r", status);
-      Halt();
->>>>>>> day4
-    }
-    Print(L"Kernel: 0x%0lx (%lu Bytes)\n", kernel_base_addr, kernel_file_size);
+    
 
     //UEFI BIOSブートサービスの停止
     status = gBS->ExitBootServices(image_handle, memmap.map_key);
@@ -365,8 +314,10 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
         }
     }
 
-    //カーネルを起動させる & ピクセルの詳細情報を渡す
+    //カーネルのエントリーポイントの取得
     UINT64 entry_addr = *(UINT64*)(kernel_base_addr+24);
+
+    //カーネルを起動させる & ピクセルの詳細情報を渡す
     struct FrameBufferConfig config = {
       (UINT8*)gop->Mode->FrameBufferBase,
       gop->Mode->Info->PixelsPerScanLine,
