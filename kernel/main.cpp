@@ -17,6 +17,8 @@
 #include "usb/classdriver/mouse.hpp"
 #include "usb/xhci/xhci.hpp"
 #include "usb/xhci/trb.hpp"
+#include "interrupt.hpp"
+#include "asmfunc.h"
 
 const PixelColor kDesktopBGColor{45, 118, 237};
 const PixelColor kDesktopFGColor{255, 255, 255};
@@ -67,7 +69,18 @@ void SwitchEhci2Xhci(const pci::Device& xhc_dev){
     uint32_t ehci2xhci_ports = pci::ReadConfReg(xhc_dev, 0xd4); //XUSB2PRM
     pci::WriteConfReg(xhc_dev, 0xd0, ehci2xhci_ports); // XUSB2PR
     Log(kDebug, "SwitchEhci2Xhci: SS = %02, xHCI = %02x\n", superspeed_ports, ehci2xhci_ports);
+}
 
+// xHCI用の割り込みハンドラの定義
+usb::xhci::Controller* xhc;
+__attribute__((interrupt))
+void IntHandlerXHCI(InterruptFrame* frame){
+    while (xhc->PrimaryEventRing()->HasFront()){
+        if (auto err = ProcessEvent(*xhc)){
+            Log(kError, "Error whiel ProcessEvent: %s at %s: %d\n", err.Name(), err.File(), err.Line());
+        }
+    }
+    NotifyEndOfInterrupt();
 }
 
 extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config){
@@ -122,6 +135,16 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config){
         Log(kInfo, "xHC has been found: %d.%d.%d\n", xhc_dev->bus, xhc_dev->device, xhc_dev->function);
     }
 
+    // 割り込みベクタ0x40を設定して、IDTをCPUに登録する
+    const uint16_t cs = GetCS();
+    SetIDTEntry(idt[InterruptVector::kXHCI], MakeIDTAttr(DescriptorType::kInterruptGate, 0), reinterpret_cast<uint64_t>(IntHandlerXHCI), cs);
+    LoadIDT(sizeof(idt)-1, reinterpret_cast<uintptr_t>(&idt[0]));
+
+    // xHCに対して、MSI割り込みを設定する
+    const uint8_t bsp_local_apic_id = *reinterpret_cast<const uint32_t*>(0xfee00020)  >>24;
+    pci::ConfigureMSIFixedDestination(*xhc_dev, bsp_local_apic_id, pci::MSITriggerMode::kLevel,
+        pci::MSIDeliveryMode::kFixed, InterruptVector::kXHCI, 0);
+
     //BAR0レジスタの読み込み
     const WithError<uint64_t> xhc_bar = pci::ReadBar(*xhc_dev, 0);
     Log(kDebug, "ReadBar: %s\n", xhc_bar.error.Name());
@@ -140,6 +163,9 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config){
     Log(kInfo, "xHC staring\n");
     xhc.Run();
 
+    ::xhc = &xhc;
+    __asm__("sti");
+
     //USbポートを調べて接続済みポートの設定を行う
     usb::HIDMouseDriver::default_observer = MouseObserver;
     for (int i=1; i<=xhc.MaxPorts(); ++i){
@@ -151,13 +177,6 @@ extern "C" void KernelMain(const FrameBufferConfig& frame_buffer_config){
                 Log(kError, "failed to configure port: %s at %s:%d\n", err.Name(), err.File(), err.Line());
                 continue;
             }
-        }
-    }
-
-    //ポーリングでマウス操作
-    while (1){
-        if (auto err = ProcessEvent(xhc)){
-            Log(kError, "ERROR while ProcessEvent: %s at %s:%d\n", err.Name(), err.File(), err.Line());
         }
     }
 
