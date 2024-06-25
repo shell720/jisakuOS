@@ -157,21 +157,21 @@ void Halt(void){
     while(1) __asm__("hlt");
 }
 
-void CalcLoadAddressRange(Elf64_Ehdr* ehdr, UINT64* first. UINT64* last){
+void CalcLoadAddressRange(Elf64_Ehdr* ehdr, UINT64* first, UINT64* last){
     Elf64_Phdr* phdr = (Elf64_Phdr*)((UINT64)ehdr + ehdr->e_phoff);
     *first = MAX_UINT64;
     *last = 0;
     for (Elf64_Half i=0; i<ehdr->e_phnum; ++i){
         if (phdr[i].p_type != PT_LOAD) continue;
         *first = MIN(*first, phdr[i].p_vaddr);
-        *last = MAX(*last, phdr[i].p_vaddr+pdhr[i].p_memsz);
+        *last = MAX(*last, phdr[i].p_vaddr+phdr[i].p_memsz);
     }
 }
 
 void CopyLoadSegments(Elf64_Ehdr* ehdr){
     Elf64_Phdr* phdr = (Elf64_Phdr*)((UINT64)ehdr+ehdr->e_phoff);
     for (Elf64_Half i=0; i<ehdr->e_phnum; ++i){
-        if (phdr[i].p_type != PT_LOAD) contiune;
+        if (phdr[i].p_type != PT_LOAD) continue;
 
         UINT64 segm_in_file = (UINT64)ehdr+phdr[i].p_offset;
         CopyMem((VOID*)phdr[i].p_vaddr, (VOID*)segm_in_file, phdr[i].p_filesz);
@@ -307,7 +307,7 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
     }
 
     //カーネルのエントリーポイントの取得
-    UINT64 entry_addr = *(UINT64*)(kernel_base_addr+24);
+    UINT64 entry_addr = *(UINT64*)(kernel_first_addr+24);
 
     //カーネルを起動させる & ピクセルの詳細情報を渡す
     struct FrameBufferConfig config = {
