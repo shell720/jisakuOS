@@ -61,7 +61,7 @@ SetCSSS:
     ret
 
 global SetDSAll ; void SetDSAll(uint16_t, value)
-SetDSAll
+SetDSAll:
     mov ds, di
     mov es, di
     mov fs, di
