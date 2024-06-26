@@ -14,11 +14,10 @@ class FrameBuffer{
         void Move(Vector2D<int> dst_pos, const Rectangle<int>& src);
 
         FrameBufferWriter& Writer() {return *writer_; }
+        const FrameBufferConfig& Config() const { return config_;}
 
     private:
         FrameBufferConfig config_{};
         std::vector<uint8_t> buffer_{};
         std::unique_ptr<FrameBufferWriter> writer_{};
 };
-
-int BitsPerPixel(PixelFormat format);

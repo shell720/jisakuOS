@@ -43,7 +43,7 @@ Error FrameBuffer::Initialize(const FrameBufferConfig& config){
             writer_ = std::make_unique<RGBResv8BitPerColorPixelWriter>(config_);
             break;
         case kPixelBGRResv8BitPerColor:
-            writer_ = std::make_unique<RGBResv8BitPerColorPixelWriter>(config_);
+            writer_ = std::make_unique<BGRResv8BitPerColorPixelWriter>(config_);
             break;    
         default:
             return MAKE_ERROR(Error::kUnknownPixelFormat);
