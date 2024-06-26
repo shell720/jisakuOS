@@ -16,6 +16,7 @@ class Layer{
 
         Layer& SetWindow(const std::shared_ptr<Window>& window);
         std::shared_ptr<Window> GetWindow() const;
+        Vector2D<int> GetPosition() const;
 
         //レイヤーの位置情報を指定された絶対座標へと更新する。※再描画はしない
         Layer& Move(Vector2D<int> pos); 
@@ -23,7 +24,7 @@ class Layer{
         Layer& MoveRelative(Vector2D<int> pos_diff); 
 
         //writerにWindowの内容を描画
-        void DrawTo(FrameBuffer& screen) const; 
+        void DrawTo(FrameBuffer& screen, const Rectangle<int>& area) const; 
 
     private:
         unsigned int id_;
@@ -36,9 +37,10 @@ class LayerManager { // 複数のレイヤーを管理
         void SetWriter(FrameBuffer* screen);
         Layer& NewLayer();
 
-        void Draw() const;
+        void Draw(const Rectangle<int>& area) const;
+        void Draw(unsigned int id) const;
 
-        void Move(unsigned int id, Vector2D<int> new_position);
+        void Move(unsigned int id, Vector2D<int> new_pos);
         void MoveRelative(unsigned int id, Vector2D<int> pos_diff);
 
         // レイヤーの高さ方向の位置を指定された位置に移動する

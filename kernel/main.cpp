@@ -64,7 +64,6 @@ void MouseObserver(int8_t displacement_x, int8_t displacement_y){
     mouse_position = ElementMax(newpos, {0, 0});
 
     layer_manager->Move(mouse_layer_id, mouse_position);
-    layer_manager->Draw();
 }
 
 void SwitchEhci2Xhci(const pci::Device& xhc_dev){
@@ -240,7 +239,6 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     auto bgwindow = std::make_shared<Window>(screen_size.x, screen_size.y, frame_buffer_config.pixel_format);
     auto bgwriter = bgwindow->Writer();
     DrawDesktop(*bgwriter);
-    console->SetWindow(bgwindow);
     auto mouse_window = std::make_shared<Window>(kMouseCursorWidth, kMouseCursorHeight, frame_buffer_config.pixel_format);
     mouse_window->SetTransparentColor(kMouseTransparentColor);
     DrawMouseCursor(mouse_window->Writer(), {0, 0});
@@ -249,6 +247,9 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     // Widgetの作成
     auto main_widget = std::make_shared<Window>(160, 52, frame_buffer_config.pixel_format);
     DrawWindow(*main_widget->Writer(), "Hello Window");
+
+    auto console_window = std::make_shared<Window>(Console::kColumns*8, Console::kRows*16, frame_buffer_config.pixel_format);
+    console->SetWindow(console_window);
 
     //スクリーンの作成
     FrameBuffer screen;
@@ -261,12 +262,14 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     auto bglayer_id = layer_manager->NewLayer().SetWindow(bgwindow).Move({0,0}).ID();
     mouse_layer_id = layer_manager->NewLayer().SetWindow(mouse_window).Move(mouse_position).ID();
     auto main_widget_layer_id = layer_manager->NewLayer().SetWindow(main_widget).Move({300, 300}).ID();
+    console->SetLayerID(layer_manager->NewLayer().SetWindow(console_window).Move({0,0}).ID());
     layer_manager->UpDown(bglayer_id, 0);
-    layer_manager->UpDown(mouse_layer_id, 1);
-    layer_manager->UpDown(main_widget_layer_id, 1);
-    layer_manager->Draw();
+    layer_manager->UpDown(console->LayerID(), 1);
+    layer_manager->UpDown(main_widget_layer_id, 2);
+    layer_manager->UpDown(mouse_layer_id, 3);
+    layer_manager->Draw({{0,0}, screen_size});
 
-    // カウンタの作成
+    // widgetに表示するカウンタの作成
     char str[128];
     unsigned int count = 0;
 
@@ -276,7 +279,7 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
         sprintf(str, "%010u", count);
         FillRectangle(*main_widget->Writer(), {24,28}, {8*10,16}, {0xc6,0xc6,0xc6});
         WriteString(*main_widget->Writer(), {24,28}, str, {0,0,0});
-        layer_manager->Draw();
+        layer_manager->Draw(main_widget_layer_id);
 
         __asm__("cli");
         if (main_queue.Count()==0){

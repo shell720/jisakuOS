@@ -34,8 +34,9 @@ class Window{
 
         // 与えられたFrameBufferにこのウィンドウの表示領域を描画する。
         // @param dst 描画先
-        // @param position  writerの左上を基準とした描画位置
-        void DrawTo(FrameBuffer& dst, Vector2D<int> position);
+        // @param pos  dstの左上を基準とした描画位置
+        // @param area  dstの左上を基準とした描画対象範囲
+        void DrawTo(FrameBuffer& dst, Vector2D<int> pos, const Rectangle<int>& area);
         void SetTransparentColor(std::optional<PixelColor> c);
         // このインスタンスに紐付いたWindowWriterを取得
         WindowWriter* Writer();
@@ -45,6 +46,7 @@ class Window{
 
         int Width() const;
         int Height() const;
+        Vector2D<int> Size() const;
 
         void Move(Vector2D<int> dst_pos, const Rectangle<int>& src);
 
