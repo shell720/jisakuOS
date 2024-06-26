@@ -246,6 +246,12 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     DrawMouseCursor(mouse_window->Writer(), {0, 0});
     mouse_position = {200, 200};
 
+    // Widgetの作成
+    auto main_widget = std::make_shared<Window>(160, 68, frame_buffer_config.pixel_format);
+    DrawWindow(*main_widget->Writer(), "Hello Window");
+    WriteString(*main_widget->Writer(), {24, 28}, "Welcome to", {0, 0, 0});
+    WriteString(*main_widget->Writer(), {24, 44}, "PEGI Wrold!", {0, 0, 0});
+
     //スクリーンの作成
     FrameBuffer screen;
     if (auto err = screen.Initialize(frame_buffer_config)){
@@ -256,8 +262,10 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
 
     auto bglayer_id = layer_manager->NewLayer().SetWindow(bgwindow).Move({0,0}).ID();
     mouse_layer_id = layer_manager->NewLayer().SetWindow(mouse_window).Move(mouse_position).ID();
+    auto main_widget_layer_id = layer_manager->NewLayer().SetWindow(main_widget).Move({300, 300}).ID();
     layer_manager->UpDown(bglayer_id, 0);
     layer_manager->UpDown(mouse_layer_id, 1);
+    layer_manager->UpDown(main_widget_layer_id, 1);
     layer_manager->Draw();
 
     // queueにある割り込み処理を実行する部分
