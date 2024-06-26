@@ -247,10 +247,8 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     mouse_position = {200, 200};
 
     // Widgetの作成
-    auto main_widget = std::make_shared<Window>(160, 68, frame_buffer_config.pixel_format);
+    auto main_widget = std::make_shared<Window>(160, 52, frame_buffer_config.pixel_format);
     DrawWindow(*main_widget->Writer(), "Hello Window");
-    WriteString(*main_widget->Writer(), {24, 28}, "Welcome to", {0, 0, 0});
-    WriteString(*main_widget->Writer(), {24, 44}, "PEGI Wrold!", {0, 0, 0});
 
     //スクリーンの作成
     FrameBuffer screen;
@@ -268,11 +266,21 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     layer_manager->UpDown(main_widget_layer_id, 1);
     layer_manager->Draw();
 
+    // カウンタの作成
+    char str[128];
+    unsigned int count = 0;
+
     // queueにある割り込み処理を実行する部分
     while (true) {
+        ++count;
+        sprintf(str, "%010u", count);
+        FillRectangle(*main_widget->Writer(), {24,28}, {8*10,16}, {0xc6,0xc6,0xc6});
+        WriteString(*main_widget->Writer(), {24,28}, str, {0,0,0});
+        layer_manager->Draw();
+
         __asm__("cli");
         if (main_queue.Count()==0){
-            __asm__("sti\n\thlt");
+            __asm__("sti");
             continue;
         }
 
