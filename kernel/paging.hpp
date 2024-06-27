@@ -9,3 +9,5 @@ const size_t kPageDirectoryCount = 64;
 
 // アイデンティティページテーブル：仮想アドレス = 物理アドレス
 void SetupIdentityPageTable();
+
+void InitializePaging();

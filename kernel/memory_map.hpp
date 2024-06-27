@@ -13,7 +13,7 @@ struct MemoryMap {
 
 struct MemoryDescriptor {
     uint32_t type;
-    uintptr_t phycical_start;
+    uintptr_t physical_start;
     uintptr_t virtual_start;
     uint64_t number_of_pages;
     uint64_t attribute;

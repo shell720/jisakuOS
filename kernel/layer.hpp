@@ -67,3 +67,5 @@ class LayerManager { // 複数のレイヤーを管理
 };
 
 extern LayerManager* layer_manager;
+
+void InitializeLayer();
