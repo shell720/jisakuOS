@@ -6,24 +6,25 @@
 #include "logger.hpp"
 
 namespace {
+
     template <typename T>
-    uint8_t SumBytes(const T* data, size_t bytes){
+    uint8_t SumBytes(const T* data, size_t bytes) {
         return SumBytes(reinterpret_cast<const uint8_t*>(data), bytes);
     }
 
     template <>
-    uint8_t SumBytes<uint8_t>(const uint8_t* data, size_t bytes){
+    uint8_t SumBytes<uint8_t>(const uint8_t* data, size_t bytes) {
         uint8_t sum = 0;
-        for (size_t i=0; i<bytes; ++i){
+        for (size_t i = 0; i < bytes; ++i) {
             sum += data[i];
         }
-        return sum;
+    return sum;
     }
 }
 
 namespace acpi{
     bool RSDP::IsValid() const {
-        if (strncmp(this->signature, "RSD PTR", 8) != 0){
+        if (strncmp(this->signature, "RSD PTR ", 8) != 0) {
             Log(kDebug, "invalid signature: %.8s\n", this->signature);
             return false;
         }
@@ -64,6 +65,20 @@ namespace acpi{
     }
 
     const FADT* fadt;
+
+    void WaitMilliseconds(unsigned long msec){
+        const bool pm_timer_32 = (fadt->flags >> 8) & 1;
+        const uint32_t start = IoIn32(fadt->pm_tmr_blk);
+        uint32_t end = start + kPMTimerFreq*msec/1000;
+        if (!pm_timer_32){
+            end &= 0x000ffffffu;
+        }
+
+        if (end < start){
+            while (IoIn32(fadt->pm_tmr_blk) >= start);
+        }
+        while (IoIn32(fadt->pm_tmr_blk) < end);
+    }
 
     void Initialize(const RSDP& rsdp){
         if (!rsdp.IsValid()){
