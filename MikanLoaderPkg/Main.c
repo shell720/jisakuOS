@@ -328,9 +328,18 @@ EFI_STATUS EFIAPI UefiMain( EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *system_ta
         Print(L"Unimplemented pixel format: %d\n", gop->Mode->Info->PixelFormat);
         Halt();
     }
-    typedef void EntryPointType(const struct FrameBufferConfig*, const struct MemoryMap*);
+
+    // ACPIテーブルを取得
+    VOID* acpi_table = NULL;
+    for (UINTN i = 0; i < system_table->NumberOfTableEntries; ++i){
+        if (CompareGuid(&gEfiAcpiTableGuid, &system_table->ConfigurationTable[i].VendorGuid)){
+            acpi_table = system_table->ConfigurationTable[i].VendorTable;
+            break;
+        }
+    }
+    typedef void EntryPointType(const struct FrameBufferConfig*, const struct MemoryMap*, const VOID*);
     EntryPointType* entry_point = (EntryPointType*)entry_addr;
-    entry_point(&config, &memmap);
+    entry_point(&config, &memmap, acpi_table);
 
     Print(L"ALL Done\n");
 

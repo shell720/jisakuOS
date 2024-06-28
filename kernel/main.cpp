@@ -25,6 +25,7 @@
 #include "layer.hpp"
 #include "message.hpp"
 #include "timer.hpp"
+#include "acpi.hpp"
 
 // メッセージ出力する関数
 int printk(const char* format, ...){
@@ -56,7 +57,8 @@ std::deque<Message>* main_queue;
 // カーネルでのスタック領域の設定
 alignas(16) uint8_t kernel_main_stack[1024*1024];
 
-extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_ref, const MemoryMap& memory_map_ref){
+extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_ref, 
+    const MemoryMap& memory_map_ref, const acpi::RSDP& acpi_table){
     // スタック領域を、UEFI管理からカーネル管理に移行
     MemoryMap memory_map{memory_map_ref};
 
@@ -80,6 +82,7 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     InitializeMouse();
     layer_manager->Draw({{0,0}, ScreenSize()});
 
+    acpi::Initialize(acpi_table);
     InitializeLAPICTimer(*main_queue);
 
     // サンプルとして追加
