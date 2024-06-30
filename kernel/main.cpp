@@ -28,6 +28,7 @@
 #include "acpi.hpp"
 #include "keyboard.hpp"
 #include "task.hpp"
+#include "terminal.hpp"
 
 // メッセージ出力する関数
 int printk(const char* format, ...){
@@ -62,7 +63,7 @@ void InitializeTextWindow(){
     text_window = std::make_shared<ToplevelWindow>(win_w, win_h, screen_config.pixel_format, "Text Box Test");
     DrawTextbox(*text_window->InnerWriter(), {0, 0}, text_window->InnerSize());
 
-    text_window_layer_id = layer_manager->NewLayer().SetWindow(text_window).SetDraggable(true).Move({350,200}).ID();
+    text_window_layer_id = layer_manager->NewLayer().SetWindow(text_window).SetDraggable(true).Move({500,100}).ID();
 
     layer_manager->UpDown(text_window_layer_id, std::numeric_limits<int>::max());
 }
@@ -184,6 +185,7 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     InitializeTask();
     Task& main_task = task_manager->CurrentTask();
     const uint64_t taskb_id = task_manager->NewTask().InitContext(TaskB, 45).Wakeup().ID();
+    const uint64_t task_terminal_id = task_manager->NewTask().InitContext(TaskTerminal, 0).Wakeup().ID();
 
     usb::xhci::Initialize();
     InitializeKeyboard();
@@ -226,6 +228,10 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
                     textbox_cursor_visible = !textbox_cursor_visible;
                     DrawTextCursor(textbox_cursor_visible);
                     layer_manager->Draw(text_window_layer_id);
+
+                    __asm__("cli");
+                    task_manager->SendMessage(task_terminal_id, *msg);
+                    __asm__("sti");
                 }
                 break;
             case Message::kKeyPush:
