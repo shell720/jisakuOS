@@ -8,6 +8,7 @@
 
 #include "graphics.hpp"
 #include "window.hpp"
+#include "message.hpp"
 
 class Layer{
     public:
@@ -69,3 +70,4 @@ class LayerManager { // 複数のレイヤーを管理
 extern LayerManager* layer_manager;
 
 void InitializeLayer();
+void ProcessLayerMessage(const Message& msg);
