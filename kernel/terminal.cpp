@@ -5,6 +5,7 @@
 #include "font.hpp"
 #include "layer.hpp"
 #include "pci.hpp"
+#include "logger.hpp"
 
 Terminal::Terminal(){
     window_ = std::make_shared<ToplevelWindow>(
