@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace fat{
     struct BPB{
@@ -101,4 +102,10 @@ namespace fat{
     DirectoryEntry* FindFile(const char* name, unsigned long directory_cluster=0);
 
     bool NameIsEqual(const DirectoryEntry& entry, const char* name);
+
+    // ファイルの内容をバッファにコピーする
+    // @param buf ファイル内容の格納先
+    // @param len バッファの大きさ（バイト単位）
+    // @return 読み込んだバイト数
+    size_t LoadFile(void* buf, size_t len, const DirectoryEntry& entry);
 }

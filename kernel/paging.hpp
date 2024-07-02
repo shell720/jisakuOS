@@ -32,7 +32,7 @@ union LinearAddress4Level{
             case 2 : return parts.dir;
             case 3 : return parts.pdp;
             case 4 : return parts.pml4;
-            defalut : return 0;
+            default : return 0;
         }
     }
 
