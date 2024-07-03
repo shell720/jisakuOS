@@ -247,3 +247,35 @@ global LoadTR
 LoadTR:
     ltr di
     ret
+
+global WriteMSR
+WriteMSR:
+    mov rdx, rsi
+    shr rdx, 32
+    mov eax, esi
+    mov ecx, edi
+    wrmsr
+    ret
+
+extern syscall_table
+global SyscallEntry
+SyscallEntry:
+    push rbp
+    push rcx
+    push r11
+
+    mov rcx, r10
+    and eax, 0x7fffffff
+    mov rbp, rsp
+    and rsp, 0xfffffffffffffff0
+
+    call [syscall_table + 8*eax]
+    ; rbx, r12-r15はcallee-savedなので呼び出し側で保存する
+    ; raxは戻り値用なため、呼び出し側で保存しない
+
+    mov rsp, rbp
+
+    pop r11
+    pop rcx
+    pop rbp
+    o64 sysret
