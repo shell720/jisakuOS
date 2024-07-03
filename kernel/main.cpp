@@ -117,6 +117,7 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
     InitializeSegmentation(); // セグメンテーション用のデータをカーネルで管理
     InitializePaging(); // ページングテーブルをカーネルで管理
     InitializeMemoryManager(memory_map); //ヒープ領域の初期化
+    InitializeTSS();
     InitializeInterrupt();
 
     fat::Initialize(volume_image);
