@@ -40,6 +40,7 @@ class LayerManager { // 複数のレイヤーを管理
     public:
         void SetWriter(FrameBuffer* screen);
         Layer& NewLayer();
+        void RemoveLayer(unsigned int id);
 
         void Draw(const Rectangle<int>& area) const;
         void Draw(unsigned int id) const;
