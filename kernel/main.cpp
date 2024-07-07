@@ -134,7 +134,7 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
 
     const int kTextboxCursorTimer = 1;
     const int kTimer05Sec = static_cast<int>(kTimerFreq*0.5);
-    timer_manager->AddTimer(Timer{kTimer05Sec, kTextboxCursorTimer});
+    timer_manager->AddTimer(Timer{kTimer05Sec, kTextboxCursorTimer, 1});
     bool textbox_cursor_visible = false;
 
     InitializeSyscall();
@@ -178,7 +178,7 @@ extern "C" void KernelMainNewStack(const FrameBufferConfig& frame_buffer_config_
             case Message::kTimerTimeout:
                 if (msg->arg.timer.value == kTextboxCursorTimer){
                     __asm__("cli");
-                    timer_manager->AddTimer(Timer{msg->arg.timer.timeout + kTimer05Sec, kTextboxCursorTimer});
+                    timer_manager->AddTimer(Timer{msg->arg.timer.timeout + kTimer05Sec, kTextboxCursorTimer, 1});
                     __asm__("sti");
                     textbox_cursor_visible = !textbox_cursor_visible;
                     DrawTextCursor(textbox_cursor_visible);
