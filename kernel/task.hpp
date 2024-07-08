@@ -11,6 +11,7 @@
 
 #include "error.hpp"
 #include "message.hpp"
+#include "paging.hpp"
 
 struct TaskContext{
     uint64_t cr3, rip, rflags, reserved1;
