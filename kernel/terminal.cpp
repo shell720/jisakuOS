@@ -237,7 +237,7 @@ namespace{
     Error FreePML4(Task& current_task){
         const auto cr3 = current_task.Context().cr3;
         current_task.Context().cr3 = 0;
-        ResetCR3;
+        ResetCR3();
 
         const FrameID frame{cr3/kBytesPerFrame};
         return memory_manager->Free(frame, 1);
