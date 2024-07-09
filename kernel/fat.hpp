@@ -89,6 +89,8 @@ namespace fat{
     // @param ext  拡張子（4 バイト以上の配列）
     void ReadName(const DirectoryEntry& entry, char* base, char* ext);
 
+    void FormatName(const DirectoryEntry& entry, char* dest);
+
     static const unsigned long kEndOfClusterchain = 0x0fffffflu;
 
     // 指定されたクラスタの次のクラスタ番号を返す。
@@ -98,8 +100,9 @@ namespace fat{
 
     // @param name  8+3形式のファイル名（大文字小文字は区別しない）
     // @param directory_cluster  ディレクトリの開始クラスタ（省略するとルートディレクトリから検索する）
-    // @return ファイルを表すエントリ。見つからなければ nullptr。
-    DirectoryEntry* FindFile(const char* name, unsigned long directory_cluster=0);
+    // @return ファイルまたはディレクトリを表すエントリ、と末尾スラッシュを示すフラグの組。見つからなければ nullptr。
+    std::pair<DirectoryEntry*, bool>
+    FindFile(const char* path, unsigned long directory_cluster=0);
 
     bool NameIsEqual(const DirectoryEntry& entry, const char* name);
 
