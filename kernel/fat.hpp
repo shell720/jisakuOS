@@ -111,4 +111,16 @@ namespace fat{
     // @param len バッファの大きさ（バイト単位）
     // @return 読み込んだバイト数
     size_t LoadFile(void* buf, size_t len, const DirectoryEntry& entry);
+
+    class FileDescriptor{
+        public:
+            explicit FileDescriptor(DirectoryEntry& fat_entry);
+            size_t Read(void* buf, size_t len);
+
+        private:
+            DirectoryEntry& fat_entry_;
+            size_t rd_off_ = 0;
+            unsigned long rd_cluster_ = 0;
+            size_t rd_cluster_off_ = 0;
+    };
 }
