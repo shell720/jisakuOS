@@ -68,9 +68,24 @@ SetDSAll:
     mov gs, di
     ret
 
+global GetCR0 ;uint64_t GetCR0()
+GetCR0:
+    mov rax, cr0
+    ret
+
+global SetCR0 ;void SetCR0(uint64_t value);
+SetCR0:
+    mov cr0, rdi
+    ret
+
 global GetCR2 ;void SetCR2()
 GetCR2:
     mov rax, cr2
+    ret
+
+global InvalidateTLB ;void InvalidateTLB(uint64_t addr)
+InvalidateTLB:
+    invlpg [rdi]
     ret
 
 global SetCR3 ; void SetCR3(uint64_t value)

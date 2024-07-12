@@ -1,3 +1,3 @@
 TARGET = mmap
-OBJS = mmao.o
+OBJS = mmap.o
 include ../Makefile.elfapp
