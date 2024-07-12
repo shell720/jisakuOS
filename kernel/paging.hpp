@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "error.hpp"
+
 // 静的に確保するページディレクトリの個数。この定数はSetupIdentityPageMapで使用される
 // 1つのページディレクトリには、512個の 2MiBページを設定できるので
 // kPageDirectoryCount x 1GiBの仮想アドレスがマッピングされることになる．
@@ -75,3 +77,9 @@ union PageMapEntry {
         bits.addr = reinterpret_cast<uint64_t>(p)>>12;
     }
 };
+
+WithError<PageMapEntry*> NewPageMap();
+Error FreePageMap(PageMapEntry* table);
+Error SetupPageMaps(LinearAddress4Level addr, size_t num_4kpages);
+Error CleanPageMaps(LinearAddress4Level addr);
+Error HandlePageFault(uint64_t error_code, uint64_t causal_addr);
