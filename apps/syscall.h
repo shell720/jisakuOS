@@ -29,13 +29,14 @@ extern "C"{
     struct SyscallResult SyscallWinDrawLine(uint64_t layer_id_flags, int x0, int y0, int x1, int y1, uint32_t color);
     struct SyscallResult SyscallCloseWindow(uint64_t layer_id_flags);
     struct SyscallResult SyscallReadEvent(struct AppEvent* event, size_t len);
-    struct SyscallResult SyscallOpenFile(const char* path, int flags);
-    struct SyscallResult SyscallReadFile(int fd, void* buf, size_t count);
-    struct SyscallResult SyscallDemandPages(size_t num_pages, int flags);
 
     #define TIMER_ONESHOT_REL 1
     #define TIMER_ONESHOT_ABS 0
     struct SyscallResult SyscallCreateTimer(unsigned int type, int timer_value, unsigned long timeout_ms);
+    struct SyscallResult SyscallOpenFile(const char* path, int flags);
+    struct SyscallResult SyscallReadFile(int fd, void* buf, size_t count);
+    struct SyscallResult SyscallDemandPages(size_t num_pages, int flags);
+    struct SyscallResult SyscallMapFile(int fd, size_t* file_size, int flags);
 
     #ifdef __cplusplus
 }
